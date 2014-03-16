@@ -1,5 +1,5 @@
 <?php
-ini_set('user_agent', 'MSIE 6 XKCDbot');
+ini_set('user_agent', 'Mozilla/5.0 (compatible; Xkcdbot/2.1)');
 define('PREFIX', 'http://xkcd.com/');
 define('SUFFIX', '/');
 define('SEARCH_URL', 'http://www.google.com/search?q=site%3Axkcd.com+-site%3Awhat-if.xkcd.com+-site%3Aforums.xkcd.com+-site%3Am.xkcd.com+'); //http://www.google.com/cse?cx=012652707207066138651%3Azudjtuwe28q&siteurl=xkcd.com%2F&ref=xkcd.com%2F&q=');
@@ -304,11 +304,12 @@ if(isset($_GET['fetch'])) {
 "
 	</script>
 	<script type='text/javascript'>
+	FULL_REWRITE = true;
 	tpl = function(n, d) {
 	    return (z=ich[n](d)).substring(1, z.length - 1);
 	}, $xp = function(num) {
 		if(typeof num == 'undefined') num = $('input.n').attr('value');
-		$.get('?xp=' + num, {}, function(d) {
+		$.get('/?xp=' + num, {}, function(d) {
 			ps = $('h2', d).nextUntil('h2', '*'), t = '';
 			ps.each(function() {
 				t+= '<p>' + $(this).html() + '</p>';
@@ -475,7 +476,7 @@ if(isset($_GET['fetch'])) {
 		$('title').html('xkcd - ' + t);
 	}, $fetchl = function() {
 		if(typeof window.ln != 'undefined') return window.ln;
-		$.get('?fetch', {}, function(d) {
+		$.get('/?fetch', {}, function(d) {
 			try {
 				j = JSON.parse(d);
 			} catch(e) {return $err()}
@@ -483,11 +484,12 @@ if(isset($_GET['fetch'])) {
 		})
 	}, $fetch = function(f) {
 		try {
-			history.pushState(null, null, '?' + f);
+			console.debug(f);
+			history.pushState(null, null, FULL_REWRITE ? f.substr(4) : '?' + f);
 		} catch(e) {}
 		if(typeof _ng == 'undefined') _ng = true;
 		else if(!!_ng) return;
-		$.get('?fetch&' + f, {}, function(d) {
+		$.get('/?fetch&' + f, {}, function(d) {
 			$fetchd(d, f);
 		});
 	}, $fetchd = function(d, f) {
@@ -519,7 +521,7 @@ if(isset($_GET['fetch'])) {
 
 		if(typeof _ng == 'undefined') _ng = true;
 		else if(!!_ng) return;
-		$.get('?fetch&num=', {}, function(d) {
+		$.get('/?fetch&num=', {}, function(d) {
 			_ng = undefined;
 			try {
 				j = JSON.parse(d);
@@ -538,7 +540,7 @@ if(isset($_GET['fetch'])) {
 
 	}, $search = function(q) {
 		$('.caption').hide();
-		searchurl = '?search=';
+		searchurl = '/?search=';
 		searchurl+= q;
 		$.get(searchurl, {}, function(d) {
 			links = $('h3 a', $(d));
@@ -561,8 +563,12 @@ if(isset($_GET['fetch'])) {
 		});
 	}, $init = function() {
 		fquery = window.location.search.substring(1);
-		if(fquery !== '' && fquery !== 'num=') $fetchl();
-		$fetch(fquery);
+		fpath = window.location.pathname.substring(1);
+		if(fpath !== '' && fpath !== 'index.php') {
+			$fetch('num='+fpath);
+		} else if(fquery !== '' && fquery !== 'num=') {
+			$fetch(fquery);
+		} else $fetchl();
 		window.onresize = $res;
 		$res();
 	}
@@ -570,7 +576,10 @@ if(isset($_GET['fetch'])) {
 		$init();
 		window.addEventListener('popstate', function(e) {
 			setTimeout(function() {
-				$fetch(document.location.search.substring(1));
+				q = document.location.search.substring(1);
+				p = window.location.pathname.substring(1);
+				if(p !== '' && p !== 'index.php') $fetch(p);
+				else $fetch(q);
 			}, 100);
 			
 		});
