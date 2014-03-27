@@ -5,7 +5,7 @@ define('SUFFIX', '/');
 define('SEARCH_URL', 'http://www.google.com/search?q=site%3Axkcd.com+-site%3Awhat-if.xkcd.com+-site%3Aforums.xkcd.com+-site%3Am.xkcd.com+'); //http://www.google.com/cse?cx=012652707207066138651%3Azudjtuwe28q&siteurl=xkcd.com%2F&ref=xkcd.com%2F&q=');
 define('XP_URL', 'http://www.explainxkcd.com/wiki/index.php?title=');
 $num = $_GET['num'];
-if(isset($_GET['search'])) die(file_get_contents(SEARCH_URL . $_GET['search']));
+if(isset($_GET['search'])) die(file_get_contents(SEARCH_URL . str_replace(" ","+",str_replace("%20","+",$_GET['search']))));
 if(isset($_GET['xp'])) die(file_get_contents(XP_URL . $_GET['xp']));
 if(isset($_GET['fetch'])) {
 	$fc = file_get_contents(PREFIX . $num . SUFFIX);
